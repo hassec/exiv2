@@ -1,0 +1,9 @@
+[settings]
+build_type=Debug
+[options]
+&:coverage=True
+&:fuzzTests=False
+&:intl=True
+&:docs=False
+[build_requires]
+[env]

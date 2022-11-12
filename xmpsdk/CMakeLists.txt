@@ -28,7 +28,7 @@ add_library(exiv2-xmp OBJECT
 
 target_link_libraries(exiv2-xmp
     PRIVATE 
-    EXPAT::EXPAT
+    expat::expat
 )
 
 target_include_directories(exiv2-xmp SYSTEM
