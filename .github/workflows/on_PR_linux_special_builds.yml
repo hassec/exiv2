@@ -23,33 +23,23 @@ jobs:
 
       - name: install dependencies
         run: |
-          sudo apt-get install ninja-build
           pip3 install conan==1.54.0
           pip3 install gcovr
 
-      - name: Conan common config
+      - name: Get Dependencies
         run: |
           conan profile new --detect default
           conan profile update settings.compiler.libcxx=libstdc++11 default
-
-      - name: Run Conan
-        run: |
-          mkdir build && cd build
-          conan profile list
-          conan profile show default
-          conan install .. -o webready=True --build missing
+          conan install . -pr:b=default -pr:h=default -pr:h=./conan/dev --build missing
 
       - name: Build
-        run: |
-          cmake --preset linux-coverage -S . -B build
-          cmake --build build --parallel
+        run: conan build .
 
       - name: Tests + Upload coverage
         run: |
-          cd build
-          ctest --output-on-failure
+          ctest --verbose --output-on-failure --test-dir ./build/Debug
           # this needs to match th ecommand in on_push_ExtraJobsForMain.yml!
-          gcovr --root .. --object-dir . --exclude-unreachable-branches --exclude-throw-branches --xml -o coverage.xml
+          gcovr --root . --object-dir ./build/Debug --exclude-unreachable-branches --exclude-throw-branches --xml -o coverage.xml
           curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --import
           curl -Os https://uploader.codecov.io/latest/linux/codecov
           curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
@@ -59,106 +49,4 @@ jobs:
           chmod +x codecov
           ls -lh
           ./codecov -f coverage.xml
-
-  special_releaseValgrind:
-    name: 'Ubuntu 20.04 - GCC - Release+Valgrind'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: install dependencies
-        run: |
-          sudo apt-get install valgrind ninja-build
-          pip3 install conan==1.54.0
-
-      - name: Conan common config
-        run: |
-          conan profile new --detect default
-          conan profile update settings.compiler.libcxx=libstdc++11 default
-
-      - name: Run Conan
-        run: |
-          mkdir build && cd build
-          conan profile list
-          conan profile show default
-          conan install .. -o webready=True --build missing
-
-      - name: Build
-        run: |
-          cmake --preset linux-release -S . -B build
-          cmake --build build --parallel
-
-      - name: Tests with valgrind
-        run: |
-          cd build/bin
-          valgrind ./unit_tests
-
-
-  special_releaseSanitizers:
-    name: 'Ubuntu 20.04 - GCC - Release+Sanitizers'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: install dependencies
-        run: |
-          sudo apt-get install ninja-build
-          pip3 install conan==1.54.0
-
-      - name: Conan common config
-        run: |
-          conan profile new --detect default
-          conan profile update settings.compiler.libcxx=libstdc++11 default
-
-      - name: Run Conan
-        run: |
-          mkdir build && cd build
-          conan profile list
-          conan profile show default
-          conan install .. -o webready=True --build missing
-
-      - name: Build
-        run: |
-          cmake --preset linux-sanitizers -S . -B build
-          cmake --build build --parallel
-
-      - name: Tests
-        run: |
-          cd build
-          ctest --output-on-failure
-
-  special_allEnabled:
-    name: 'Ubuntu 20.04 - GCC - All Options Enabled + Documentation'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: install dependencies
-        run: |
-          sudo apt-get install valgrind doxygen graphviz gettext ninja-build
-          pip3 install conan==1.54.0
-
-      - name: Conan common config
-        run: |
-          conan profile new --detect default
-          conan profile update settings.compiler.libcxx=libstdc++11 default
-
-      - name: Run Conan
-        run: |
-          mkdir build && cd build
-          conan profile list
-          conan profile show default
-          conan install .. -o webready=True --build missing
-
-      - name: Build
-        run: |
-          cmake --preset linux-release -S . -B build -DEXIV2_BUILD_DOC=ON -DCMAKE_CXX_FLAGS="-DEXIV2_DEBUG_MESSAGES" 
-          cmake --build build --parallel
-
-      - name: Generate documentation
-        run: |
-          make doc
 

@@ -12,6 +12,8 @@ project(exiv2          # use TWEAK to categorize the build
     LANGUAGES C CXX
 )
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE Release)
 endif()
@@ -60,7 +62,6 @@ mark_as_advanced(
 option( BUILD_WITH_STACK_PROTECTOR    "Build with stack protector"                            ON )
 option( BUILD_WITH_CCACHE             "Use ccache to speed up compilations"                   OFF )
 option( BUILD_WITH_COVERAGE           "Add compiler flags to generate coverage stats"         OFF )
-include(cmake/gcovr.cmake REQUIRED)
 
 set( PACKAGE_URL                      "https://exiv2.org")
 
